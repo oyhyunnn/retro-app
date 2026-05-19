@@ -1,4 +1,4 @@
-import type { Retrospective } from "@/types/retro";
+import type { Retrospective, Settings } from "@/types/retro";
 
 export type CreateRetroInput = Omit<
   Retrospective,
@@ -20,4 +20,10 @@ export interface RetroRepository {
   exportAll(): Promise<Retrospective[]>;
   importAll(items: Retrospective[], mode: ImportMode): Promise<void>;
   clear(): Promise<void>;
+}
+
+export interface SettingsRepository {
+  get(): Promise<Settings>;
+  update(patch: Partial<Settings>): Promise<Settings>;
+  reset(): Promise<Settings>;
 }

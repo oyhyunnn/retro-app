@@ -1,12 +1,56 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowRight, ListChecks, Plus, Settings as SettingsIcon } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import {
+  ArrowRight,
+  CalendarDays,
+  ListChecks,
+  Plus,
+  Settings as SettingsIcon,
+  Sparkles,
+} from "lucide-react";
 
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { METHOD_META } from "@/lib/retro/method-meta";
+import { cn } from "@/lib/utils";
+import { formatRetroDate, isInCurrentMonth } from "@/lib/utils/date";
+import { useRetroStore } from "@/stores/retroStore";
 
 export default function HomePage() {
+  const items = useRetroStore((s) => s.items);
+  const loaded = useRetroStore((s) => s.loaded);
+  const loading = useRetroStore((s) => s.loading);
+  const load = useRetroStore((s) => s.load);
+
+  useEffect(() => {
+    if (!loaded && !loading) {
+      void load();
+    }
+  }, [load, loaded, loading]);
+
+  const stats = useMemo(() => {
+    const total = items.length;
+    const thisMonth = items.filter((r) =>
+      isInCurrentMonth(r.createdAt),
+    ).length;
+    return { total, thisMonth };
+  }, [items]);
+
+  const recents = useMemo(() => {
+    return [...items]
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+      .slice(0, 3);
+  }, [items]);
+
   return (
     <main className="container mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 sm:py-12">
       <header className="flex items-center justify-between">
@@ -35,7 +79,7 @@ export default function HomePage() {
       </header>
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
-        <Card className="sm:col-span-2 sm:row-span-2 group relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent">
+        <Card className="sm:col-span-2 sm:row-span-2 relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/15 via-primary/5 to-transparent">
           <CardHeader>
             <Badge variant="secondary" className="w-fit">
               메인
@@ -60,16 +104,19 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        <Card className="group transition hover:border-primary/40">
+        <Card className="transition hover:border-primary/40">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <ListChecks className="h-4 w-4 text-primary" />
-              나의 회고 보기
+              나의 회고
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <p className="text-xs text-muted-foreground">
-              지금까지 작성한 회고를 확인하고 정리하세요.
+          <CardContent className="flex flex-col gap-2">
+            <p className="text-3xl font-semibold leading-none">
+              {loaded ? stats.total : "—"}
+              <span className="ml-1 text-sm font-normal text-muted-foreground">
+                개
+              </span>
             </p>
             <Button
               variant="ghost"
@@ -77,7 +124,7 @@ export default function HomePage() {
               className="w-fit gap-1 px-0"
               render={<Link href="/list" />}
             >
-              바로 가기
+              전체 보기
               <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </CardContent>
@@ -85,28 +132,109 @@ export default function HomePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">최근 회고</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Sparkles className="h-4 w-4 text-primary" />
+              이번 달
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">
-              아직 작성된 회고가 없어요. 첫 회고를 시작해 보세요.
+            <p className="text-3xl font-semibold leading-none">
+              {loaded ? stats.thisMonth : "—"}
+              <span className="ml-1 text-sm font-normal text-muted-foreground">
+                회
+              </span>
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              이번 달 작성한 회고
             </p>
           </CardContent>
         </Card>
       </section>
 
-      <section>
-        <Card className="bg-muted/30">
-          <CardContent className="flex flex-col gap-1 py-5">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Phase 1 셋업 완료
-            </p>
-            <p className="text-sm">
-              Next.js 16 · Tailwind 4 · shadcn/ui · PWA · 다크모드 · 타입 정의
-              완료. 다음 Phase에서 데이터 레이어와 회고 등록 화면을 구현합니다.
-            </p>
-          </CardContent>
-        </Card>
+      <section className="flex flex-col gap-3">
+        <header className="flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-sm font-semibold">
+            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+            최근 회고
+          </h2>
+          {recents.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1 px-0"
+              render={<Link href="/list" />}
+            >
+              모두 보기
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          )}
+        </header>
+
+        {!loaded ? (
+          <Card>
+            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+              불러오는 중...
+            </CardContent>
+          </Card>
+        ) : recents.length === 0 ? (
+          <Card className="bg-muted/30">
+            <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Plus className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">아직 작성된 회고가 없어요</p>
+                <p className="text-xs text-muted-foreground">
+                  첫 회고를 시작해 보세요.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                className="gap-1"
+                render={<Link href="/retro/new" />}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                회고 시작
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {recents.map((retro) => {
+              const meta = METHOD_META[retro.method];
+              return (
+                <li key={retro.id}>
+                  <Link
+                    href={`/retro/${retro.id}`}
+                    className="block h-full transition"
+                  >
+                    <Card className="h-full transition hover:border-primary/40">
+                      <CardContent className="flex h-full flex-col gap-2 py-4">
+                        <div className="flex items-center justify-between">
+                          <Badge
+                            variant="outline"
+                            className={cn("text-xs", meta.badgeClass)}
+                          >
+                            {meta.short}
+                          </Badge>
+                          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                            {retro.type === "team" ? "팀" : "개인"}
+                          </span>
+                        </div>
+                        <p className="line-clamp-2 text-sm font-medium leading-snug">
+                          {retro.title}
+                        </p>
+                        <p className="mt-auto text-xs text-muted-foreground">
+                          {formatRetroDate(retro.retroDate)}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </section>
     </main>
   );

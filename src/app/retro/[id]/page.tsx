@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Pencil, Play, Trash2 } from "lucide-react";
+import { use, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, Download, Pencil, Play, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { ContentView } from "@/components/retro/ContentView";
 import { ProjectOverviewPanel } from "@/components/retro/ProjectOverviewPanel";
+import { RetroPDFView } from "@/components/retro/RetroPDFView";
 import { StickyBoard } from "@/components/retro/StickyBoard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -50,6 +51,8 @@ export default function RetroDetailPage({
   const [closing, setClosing] = useState("");
   const [closingSaving, setClosingSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (retro) setClosing(retro.closing ?? "");
@@ -74,6 +77,21 @@ export default function RetroDetailPage({
     }, 600);
     return () => clearTimeout(timer);
   }, [closing, retro, update]);
+
+  const handleExportPDF = async () => {
+    if (!retro || !pdfRef.current) return;
+    setPdfBusy(true);
+    try {
+      const { exportRetroToPDF } = await import("@/lib/pdf/export");
+      await exportRetroToPDF({ retro, element: pdfRef.current });
+      toast.success("PDF 다운로드를 시작했어요.");
+    } catch (err) {
+      console.error(err);
+      toast.error("PDF 생성에 실패했어요.");
+    } finally {
+      setPdfBusy(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!retro) return;
@@ -146,6 +164,16 @@ export default function RetroDetailPage({
           <Button
             variant="ghost"
             size="sm"
+            className="gap-1"
+            onClick={handleExportPDF}
+            disabled={pdfBusy}
+          >
+            <Download className="h-3.5 w-3.5" />
+            {pdfBusy ? "생성 중..." : "PDF"}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             className="gap-1 text-destructive hover:text-destructive"
             onClick={() => setConfirmDelete(true)}
           >
@@ -186,6 +214,20 @@ export default function RetroDetailPage({
           rows={4}
         />
       </section>
+
+      <div
+        aria-hidden
+        style={{
+          position: "fixed",
+          top: 0,
+          left: "-10000px",
+          pointerEvents: "none",
+        }}
+      >
+        <div ref={pdfRef}>
+          <RetroPDFView retro={retro} />
+        </div>
+      </div>
 
       <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <DialogContent>

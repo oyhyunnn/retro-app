@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { ThemeToggle } from "@/components/common/ThemeToggle";
+import { RetroCard } from "@/components/retro/RetroCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,9 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { METHOD_META } from "@/lib/retro/method-meta";
-import { cn } from "@/lib/utils";
-import { formatRetroDate, isInCurrentMonth } from "@/lib/utils/date";
+import { isInCurrentMonth } from "@/lib/utils/date";
 import { useRetroStore } from "@/stores/retroStore";
 
 export default function HomePage() {
@@ -200,39 +199,11 @@ export default function HomePage() {
           </Card>
         ) : (
           <ul className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            {recents.map((retro) => {
-              const meta = METHOD_META[retro.method];
-              return (
-                <li key={retro.id}>
-                  <Link
-                    href={`/retro/${retro.id}`}
-                    className="block h-full transition"
-                  >
-                    <Card className="h-full transition hover:border-primary/40">
-                      <CardContent className="flex h-full flex-col gap-2 py-4">
-                        <div className="flex items-center justify-between">
-                          <Badge
-                            variant="outline"
-                            className={cn("text-xs", meta.badgeClass)}
-                          >
-                            {meta.short}
-                          </Badge>
-                          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                            {retro.type === "team" ? "팀" : "개인"}
-                          </span>
-                        </div>
-                        <p className="line-clamp-2 text-sm font-medium leading-snug">
-                          {retro.title}
-                        </p>
-                        <p className="mt-auto text-xs text-muted-foreground">
-                          {formatRetroDate(retro.retroDate)}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                </li>
-              );
-            })}
+            {recents.map((retro) => (
+              <li key={retro.id}>
+                <RetroCard retro={retro} />
+              </li>
+            ))}
           </ul>
         )}
       </section>

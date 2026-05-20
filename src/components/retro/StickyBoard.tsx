@@ -161,7 +161,8 @@ interface Props {
   method: RetroMethod;
   notes: StickyNote[];
   participants: string[];
-  onChange: (notes: StickyNote[]) => void;
+  onChange?: (notes: StickyNote[]) => void;
+  readOnly?: boolean;
 }
 
 export function StickyBoard({
@@ -169,6 +170,7 @@ export function StickyBoard({
   notes,
   participants,
   onChange,
+  readOnly = false,
 }: Props) {
   const categories = CATEGORIES[method];
 
@@ -197,6 +199,7 @@ export function StickyBoard({
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
+    if (readOnly || !onChange) return;
     const { active, over } = event;
     if (!over) return;
     if (active.id === over.id) return;
@@ -228,10 +231,11 @@ export function StickyBoard({
       }
     }
 
-    onChange(next);
+    onChange?.(next);
   };
 
   const openCreate = (category: string) => {
+    if (readOnly) return;
     setDraft({
       category,
       author: participants[0] ?? "",
@@ -241,6 +245,7 @@ export function StickyBoard({
   };
 
   const openEdit = (note: StickyNote) => {
+    if (readOnly) return;
     setDraft({
       id: note.id,
       category: note.category,
@@ -251,7 +256,7 @@ export function StickyBoard({
   };
 
   const saveDraft = () => {
-    if (!draft) return;
+    if (!draft || !onChange) return;
     const trimmed = draft.content.trim();
     if (!trimmed) return;
     if (draft.id) {
@@ -284,7 +289,7 @@ export function StickyBoard({
   };
 
   const deleteCurrent = () => {
-    if (!draft?.id) return;
+    if (!draft?.id || !onChange) return;
     onChange(notes.filter((n) => n.id !== draft.id));
     setDraft(null);
   };
@@ -310,6 +315,7 @@ export function StickyBoard({
               notes={notesByCategory[cat.key] ?? []}
               onAdd={() => openCreate(cat.key)}
               onEdit={openEdit}
+              readOnly={readOnly}
             />
           ))}
         </div>
@@ -440,13 +446,18 @@ function StickyColumn({
   notes,
   onAdd,
   onEdit,
+  readOnly,
 }: {
   category: CategoryDef;
   notes: StickyNote[];
   onAdd: () => void;
   onEdit: (note: StickyNote) => void;
+  readOnly: boolean;
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id: category.key });
+  const { setNodeRef, isOver } = useDroppable({
+    id: category.key,
+    disabled: readOnly,
+  });
 
   return (
     <div
@@ -486,21 +497,29 @@ function StickyColumn({
               note={note}
               index={idx}
               onClick={() => onEdit(note)}
+              readOnly={readOnly}
             />
           ))}
+          {readOnly && notes.length === 0 && (
+            <p className="py-3 text-center text-xs italic text-muted-foreground">
+              포스트잇 없음
+            </p>
+          )}
         </ul>
       </SortableContext>
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="gap-1"
-        onClick={onAdd}
-      >
-        <Plus className="h-3.5 w-3.5" />
-        포스트잇 추가
-      </Button>
+      {!readOnly && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="gap-1"
+          onClick={onAdd}
+        >
+          <Plus className="h-3.5 w-3.5" />
+          포스트잇 추가
+        </Button>
+      )}
     </div>
   );
 }
@@ -509,10 +528,12 @@ function SortableSticky({
   note,
   index,
   onClick,
+  readOnly,
 }: {
   note: StickyNote;
   index: number;
   onClick: () => void;
+  readOnly: boolean;
 }) {
   const {
     attributes,
@@ -521,7 +542,7 @@ function SortableSticky({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: note.id });
+  } = useSortable({ id: note.id, disabled: readOnly });
 
   const rotate = ((note.id.charCodeAt(0) + index) % 5) - 2;
 
@@ -535,12 +556,14 @@ function SortableSticky({
     <li
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      onClick={onClick}
+      {...(readOnly ? {} : attributes)}
+      {...(readOnly ? {} : listeners)}
+      onClick={readOnly ? undefined : onClick}
       className={cn(
-        "cursor-grab rounded-md p-3 shadow-md transition select-none",
-        "hover:scale-[1.02] hover:shadow-lg active:cursor-grabbing",
+        "rounded-md p-3 shadow-md transition select-none",
+        readOnly
+          ? "cursor-default"
+          : "cursor-grab hover:scale-[1.02] hover:shadow-lg active:cursor-grabbing",
         COLOR_CLASS[note.color],
         isDragging && "opacity-50",
       )}

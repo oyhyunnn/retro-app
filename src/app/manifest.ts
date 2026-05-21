@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "회고 앱",
-    short_name: "회고",
+    name: "RE: 회고",
+    short_name: "RE: 회고",
     description:
       "KPT, 4L, 5Whys, Start/Stop/Continue 등 다양한 방법론으로 개인·팀 회고를 진행하는 PWA",
     start_url: "/",

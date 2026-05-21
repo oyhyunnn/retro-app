@@ -6,15 +6,15 @@ import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: {
-    default: "회고 앱",
-    template: "%s | 회고 앱",
+    default: "RE: 회고",
+    template: "%s | RE: 회고",
   },
   description:
     "KPT, 4L, 5Whys, Start/Stop/Continue 등 다양한 방법론으로 개인·팀 회고를 진행하는 PWA",
-  applicationName: "회고 앱",
+  applicationName: "RE: 회고",
   appleWebApp: {
     capable: true,
-    title: "회고",
+    title: "RE: 회고",
     statusBarStyle: "default",
   },
   formatDetection: {

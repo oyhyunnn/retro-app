@@ -54,11 +54,13 @@ export default function HomePage() {
     <main className="container mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 sm:py-12">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold">
-            R
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground text-sm font-bold tracking-tight">
+            회고
           </div>
           <div>
-            <h1 className="text-xl font-semibold leading-tight">회고 앱</h1>
+            <h1 className="text-xl font-semibold leading-tight tracking-tight">
+              RE:
+            </h1>
             <p className="text-xs text-muted-foreground">
               꾸준한 회고로 더 나은 다음을 만듭니다
             </p>

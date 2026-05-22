@@ -87,6 +87,12 @@ export interface Retrospective {
 
   timerDurationMinutes?: number;
 
+  /**
+   * 자동 저장된 작성 중 상태. 사용자가 "임시 저장" 또는 "회고하기 시작" 액션을
+   * 누르기 전까지 true. 홈/목록/통계에서 노출하지 않는다.
+   */
+  isDraft?: boolean;
+
   createdAt: string;
   updatedAt: string;
 }

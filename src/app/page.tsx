@@ -36,19 +36,24 @@ export default function HomePage() {
     }
   }, [load, loaded, loading]);
 
+  const visibleItems = useMemo(
+    () => items.filter((r) => !r.isDraft),
+    [items],
+  );
+
   const stats = useMemo(() => {
-    const total = items.length;
-    const thisMonth = items.filter((r) =>
+    const total = visibleItems.length;
+    const thisMonth = visibleItems.filter((r) =>
       isInCurrentMonth(r.createdAt),
     ).length;
     return { total, thisMonth };
-  }, [items]);
+  }, [visibleItems]);
 
   const recents = useMemo(() => {
-    return [...items]
+    return [...visibleItems]
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
       .slice(0, 3);
-  }, [items]);
+  }, [visibleItems]);
 
   return (
     <main className="container mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 sm:py-12">

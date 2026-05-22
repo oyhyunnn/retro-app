@@ -43,6 +43,7 @@ function toCreateInput(values: RetroFormValues): CreateRetroInput {
     analysis: trimmedAnalysis || undefined,
     teamInfo,
     content: createEmptyContent(values.method),
+    isDraft: true,
   };
 }
 
@@ -100,9 +101,21 @@ export function useAutoSaveRetro(form: UseFormReturn<RetroFormValues>) {
     return () => clearTimeout(timer);
   }, [watched, persist]);
 
+  const promote = useCallback(async (): Promise<string | null> => {
+    const id = await persist();
+    if (!id) return null;
+    try {
+      await updateRetro(id, { isDraft: false });
+    } catch (err) {
+      console.error("[useAutoSaveRetro] promote failed", err);
+    }
+    return id;
+  }, [persist, updateRetro]);
+
   return {
     retroId,
     status,
     flush: persist,
+    promote,
   };
 }

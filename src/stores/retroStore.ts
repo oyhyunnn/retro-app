@@ -98,7 +98,7 @@ export const useRetroStore = create<RetroState & RetroActions>((set, get) => ({
 export function selectFilteredRetros(
   state: RetroState & RetroActions,
 ): Retrospective[] {
-  let items = [...state.items];
+  let items = state.items.filter((r) => !r.isDraft);
 
   if (state.filter.type !== "all") {
     items = items.filter((r) => r.type === state.filter.type);

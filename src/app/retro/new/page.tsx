@@ -49,16 +49,16 @@ export default function NewRetroPage() {
   const { watch, handleSubmit } = form;
   const title = watch("title");
 
-  const { status, flush } = useAutoSaveRetro(form);
+  const { status, promote } = useAutoSaveRetro(form);
 
   const handleTemporarySave = async () => {
     if (!title.trim()) {
-      toast.warning("제목을 입력하면 자동으로 저장돼요.");
+      toast.warning("제목을 입력하면 저장돼요.");
       return;
     }
-    const id = await flush();
+    const id = await promote();
     if (id) {
-      toast.success("회고를 임시 저장했어요.");
+      toast.success("회고를 저장했어요.");
       router.push("/");
     } else {
       toast.error("저장에 실패했어요. 다시 시도해 주세요.");
@@ -67,7 +67,7 @@ export default function NewRetroPage() {
 
   const handleStartSession = handleSubmit(
     async () => {
-      const id = await flush();
+      const id = await promote();
       if (id) {
         router.push(`/retro/${id}/session`);
       } else {
